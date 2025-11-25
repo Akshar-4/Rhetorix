@@ -1,0 +1,2319 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rhetorix - Premier Committee-Based Debate Competition</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Montserrat:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Firebase SDKs -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+    <style>
+        /* CSS Variables for Majestic Red, Black, Gold Theme */
+        :root {
+            --primary-red: #b91c1c;
+            --dark-red: #7f1d1d;
+            --light-red: #f87171;
+            --black: #000000;
+            --dark-gray: #1f2937;
+            --medium-gray: #374151;
+            --light-gray: #6b7280;
+            --white: #ffffff;
+            --off-white: #f9fafb;
+            --gold: #FFD700;
+            --light-gold: #FFEC8B;
+            --premium-gradient: linear-gradient(135deg, #000000 0%, #7f1d1d 100%);
+            --red-gradient: linear-gradient(135deg, #b91c1c 0%, #f87171 100%);
+            --gold-gradient: linear-gradient(135deg, #FFD700 0%, #FFEC8B 100%);
+            --card-shadow: 0 15px 35px rgba(0, 0, 0, 0.5);
+            --text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+            --glow: 0 0 10px rgba(255, 215, 0, 0.5);
+        }
+
+        /* Global Styles */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Montserrat', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            background-color: var(--black);
+            color: var(--white);
+            line-height: 1.7;
+            overflow-x: hidden;
+            background-image: 
+                radial-gradient(circle at 10% 20%, rgba(255, 215, 0, 0.03) 0%, transparent 20%),
+                radial-gradient(circle at 90% 80%, rgba(185, 28, 28, 0.03) 0%, transparent 20%);
+        }
+
+        .container {
+            width: 90%;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        /* FIXED SECTION MANAGEMENT */
+        section {
+            display: none;
+            width: 100%;
+            min-height: 100vh;
+            padding: 100px 0;
+        }
+
+        section.active {
+            display: block;
+        }
+
+        /* Home Section - FIXED */
+        #home {
+            padding: 0;
+            min-height: 100vh;
+            display: none;
+        }
+
+        #home.active {
+            display: flex;
+            align-items: center;
+        }
+
+        h1, h2, h3, h4 {
+            margin-bottom: 25px;
+            color: var(--white);
+            font-weight: 700;
+            text-shadow: var(--text-shadow);
+        }
+
+        h1 {
+            font-size: 3.5rem;
+            letter-spacing: 1px;
+            font-family: 'Cinzel', serif;
+        }
+
+        h2 {
+            font-size: 2.8rem;
+            position: relative;
+            display: inline-block;
+            font-family: 'Cinzel', serif;
+        }
+
+        h2:after {
+            content: '';
+            position: absolute;
+            bottom: -10px;
+            left: 0;
+            width: 80px;
+            height: 4px;
+            background: var(--gold-gradient);
+            border-radius: 2px;
+        }
+
+        p {
+            margin-bottom: 20px;
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+
+        .btn {
+            display: inline-block;
+            background: var(--gold-gradient);
+            color: var(--black);
+            padding: 15px 35px;
+            border: none;
+            border-radius: 50px;
+            font-weight: 700;
+            text-decoration: none;
+            transition: all 0.4s ease;
+            cursor: pointer;
+            box-shadow: 0 5px 15px rgba(255, 215, 0, 0.3);
+            letter-spacing: 0.5px;
+            position: relative;
+            overflow: hidden;
+            z-index: 1;
+            font-family: 'Cinzel', serif;
+        }
+
+        .btn:before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 0%;
+            height: 100%;
+            background: var(--black);
+            transition: all 0.4s ease;
+            z-index: -1;
+        }
+
+        .btn:hover {
+            color: var(--gold);
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(255, 215, 0, 0.5);
+        }
+
+        .btn:hover:before {
+            width: 100%;
+        }
+
+        .btn-outline {
+            background: transparent;
+            border: 2px solid var(--gold);
+            color: var(--gold);
+        }
+
+        .btn-outline:before {
+            background: var(--gold);
+        }
+
+        .btn-outline:hover {
+            color: var(--black);
+        }
+
+        /* Premium Header & Navigation */
+        header {
+            background: var(--premium-gradient);
+            position: fixed;
+            width: 100%;
+            top: 0;
+            z-index: 1000;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.2);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid rgba(255, 215, 0, 0.1);
+        }
+
+        .nav-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 0;
+        }
+
+        .logo {
+            font-size: 32px;
+            font-weight: 900;
+            color: var(--gold);
+            text-decoration: none;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+            letter-spacing: 1px;
+            display: flex;
+            align-items: center;
+            font-family: 'Cinzel', serif;
+        }
+
+        .logo span {
+            color: var(--gold);
+        }
+
+        .logo-img {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            margin-right: 10px;
+            object-fit: cover;
+            border: 2px solid var(--gold);
+        }
+
+        .nav-links {
+            display: flex;
+            list-style: none;
+            align-items: center;
+        }
+
+        .nav-links li {
+            margin-left: 35px;
+        }
+
+        .nav-links a {
+            color: var(--white);
+            text-decoration: none;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            position: relative;
+            font-size: 1.05rem;
+            padding: 5px 0;
+            cursor: pointer;
+        }
+
+        .nav-links a:hover {
+            color: var(--gold);
+        }
+
+        .nav-links a::after {
+            content: '';
+            position: absolute;
+            width: 0;
+            height: 3px;
+            bottom: 0;
+            left: 0;
+            background-color: var(--gold);
+            transition: width 0.4s ease;
+            border-radius: 2px;
+        }
+
+        .nav-links a:hover::after {
+            width: 100%;
+        }
+
+        .nav-links a.active {
+            color: var(--gold);
+        }
+
+        .nav-links a.active::after {
+            width: 100%;
+        }
+
+        .mobile-menu {
+            display: none;
+            font-size: 28px;
+            color: var(--white);
+            cursor: pointer;
+            transition: color 0.3s ease;
+        }
+
+        .mobile-menu:hover {
+            color: var(--gold);
+        }
+
+        /* Premium Hero Section - FIXED */
+        .hero {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            background: 
+                linear-gradient(135deg, rgba(0, 0, 0, 0.8) 0%, rgba(127, 29, 29, 0.7) 100%),
+                url('https://media.istockphoto.com/id/155160639/photo/european-parliament-empty-assembly-room-brussels.jpg?s=612x612&w=0&k=20&c=PV6rdJD9guUs8asgBgwcU4m30wKz8YnjQZZl9UCm5RY=') no-repeat center center/cover;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+            width: 100%;
+        }
+
+        .hero:before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle at center, transparent 0%, rgba(0, 0, 0, 0.7) 100%);
+        }
+
+        .hero-content {
+            max-width: 900px;
+            margin: 0 auto;
+            position: relative;
+            z-index: 2;
+            padding: 40px 20px;
+            width: 100%;
+        }
+
+        .hero h1 {
+            font-size: 4.5rem;
+            margin-bottom: 25px;
+            animation: fadeInUp 1s ease;
+            text-transform: uppercase;
+            letter-spacing: 3px;
+            text-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
+        }
+
+        .hero p {
+            font-size: 1.3rem;
+            margin-bottom: 40px;
+            animation: fadeInUp 1.5s ease;
+            max-width: 700px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .hero-buttons {
+            animation: fadeInUp 2s ease;
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-bottom: 40px;
+        }
+
+        .hero-buttons .btn {
+            margin: 5px;
+        }
+
+        .early-bird-badge {
+            background: linear-gradient(45deg, #FFD700, #FF6B00);
+            color: var(--black);
+            padding: 8px 20px;
+            border-radius: 25px;
+            font-weight: 700;
+            font-size: 1.1rem;
+            margin-bottom: 20px;
+            display: inline-block;
+            animation: pulse 2s infinite;
+            box-shadow: 0 0 20px rgba(255, 107, 0, 0.5);
+        }
+
+        /* Public Eye Matrix - Prominent Styling */
+        .matrix-highlight {
+            margin-top: 0;
+            animation: fadeInUp 2.5s ease;
+            padding-bottom: 40px;
+        }
+
+        .matrix-container {
+            background: linear-gradient(135deg, rgba(255, 215, 0, 0.15) 0%, rgba(127, 29, 29, 0.15) 100%);
+            backdrop-filter: blur(15px);
+            border: 2px solid rgba(255, 215, 0, 0.3);
+            border-radius: 20px;
+            padding: 30px;
+            text-align: center;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.4), 0 0 30px rgba(255, 215, 0, 0.2);
+            position: relative;
+            overflow: hidden;
+            transition: all 0.4s ease;
+            margin: 0 auto;
+        }
+
+        .matrix-container:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 45px rgba(0, 0, 0, 0.5), 0 0 40px rgba(255, 215, 0, 0.3);
+            border-color: rgba(255, 215, 0, 0.5);
+        }
+
+        .matrix-container:before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+            transition: left 0.8s ease;
+        }
+
+        .matrix-container:hover:before {
+            left: 100%;
+        }
+
+        .matrix-header {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 15px;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+        }
+
+        .matrix-header i {
+            font-size: 32px;
+            color: var(--gold);
+            text-shadow: 0 0 15px rgba(255, 215, 0, 0.5);
+        }
+
+        .matrix-header h3 {
+            color: var(--gold);
+            margin: 0;
+            font-family: 'Cinzel', serif;
+            font-size: 2rem;
+            text-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
+        }
+
+        .live-badge {
+            background: linear-gradient(45deg, #FF0000, #FF6B6B);
+            color: white;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            font-weight: 700;
+            animation: pulse 1.5s infinite;
+            box-shadow: 0 0 15px rgba(255, 0, 0, 0.5);
+        }
+
+        .matrix-container p {
+            font-size: 1.1rem;
+            margin-bottom: 20px;
+            opacity: 0.95;
+            line-height: 1.6;
+        }
+
+        .matrix-btn {
+            background: linear-gradient(135deg, #4285F4, #34A853);
+            border: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 12px;
+            padding: 15px 35px;
+            font-size: 1.1rem;
+            border-radius: 60px;
+            transition: all 0.3s ease;
+            box-shadow: 0 8px 25px rgba(66, 133, 244, 0.4);
+            margin-bottom: 15px;
+        }
+
+        .matrix-btn:hover {
+            background: linear-gradient(135deg, #3367D6, #2E8B57);
+            color: var(--white);
+            transform: translateY(-3px) scale(1.05);
+            box-shadow: 0 12px 35px rgba(66, 133, 244, 0.6);
+        }
+
+        .matrix-features {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            flex-wrap: wrap;
+            margin-top: 15px;
+        }
+
+        .matrix-features span {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: var(--gold);
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+
+        .matrix-features i {
+            color: #34A853;
+            font-size: 0.9rem;
+        }
+
+        @keyframes pulse {
+            0% {
+                transform: scale(1);
+                box-shadow: 0 0 15px rgba(255, 0, 0, 0.5);
+            }
+            50% {
+                transform: scale(1.05);
+                box-shadow: 0 0 25px rgba(255, 0, 0, 0.8);
+            }
+            100% {
+                transform: scale(1);
+                box-shadow: 0 0 15px rgba(255, 0, 0, 0.5);
+            }
+        }
+
+        /* Premium About Section */
+        .about {
+            background-color: var(--dark-gray);
+            position: relative;
+        }
+
+        .about:before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: url('https://www.transparenttextures.com/patterns/diagmonds.png');
+            opacity: 0.05;
+        }
+
+        .about-content {
+            display: flex;
+            align-items: center;
+            gap: 60px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .about-text {
+            flex: 1;
+        }
+
+        .about-text p {
+            margin-bottom: 25px;
+            text-align: justify;
+            line-height: 1.8;
+        }
+
+        .about-text p:first-child {
+            font-size: 1.2rem;
+            font-weight: 500;
+        }
+
+        .about-image {
+            flex: 1;
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: var(--card-shadow);
+            transform: perspective(1000px) rotateY(-5deg);
+            transition: transform 0.5s ease;
+            border: 1px solid rgba(255, 215, 0, 0.1);
+            height: 400px;
+        }
+
+        .about-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+            transition: transform 0.5s ease;
+        }
+
+        .about-image:hover img {
+            transform: scale(1.05);
+        }
+
+        /* Premium Mission Section */
+        .mission {
+            background-color: var(--black);
+            position: relative;
+        }
+
+        .mission:before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: url('https://www.transparenttextures.com/patterns/diagmonds.png');
+            opacity: 0.05;
+        }
+
+        .mission-content {
+            position: relative;
+            z-index: 1;
+        }
+
+        .mission-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 40px;
+            margin-top: 60px;
+        }
+
+        .mission-card {
+            background: var(--premium-gradient);
+            padding: 40px 30px;
+            border-radius: 15px;
+            text-align: center;
+            transition: all 0.4s ease;
+            box-shadow: var(--card-shadow);
+            border: 1px solid rgba(255, 215, 0, 0.1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .mission-card:before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 5px;
+            background: var(--gold-gradient);
+        }
+
+        .mission-card:hover {
+            transform: translateY(-15px);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+        }
+
+        .mission-icon {
+            font-size: 50px;
+            color: var(--gold);
+            margin-bottom: 25px;
+            text-shadow: 0 2px 10px rgba(255, 215, 0, 0.5);
+        }
+
+        .mission-card h3 {
+            font-size: 1.8rem;
+            margin-bottom: 15px;
+            font-family: 'Cinzel', serif;
+        }
+
+        /* Committees Section */
+        .committees {
+            background-color: var(--dark-gray);
+            position: relative;
+        }
+
+        .committees:before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: url('https://www.transparenttextures.com/patterns/diagmonds.png');
+            opacity: 0.05;
+        }
+
+        .committees-content {
+            position: relative;
+            z-index: 1;
+        }
+
+        .committee-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 30px;
+            margin-top: 50px;
+        }
+
+        .committee-card {
+            background: var(--premium-gradient);
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: var(--card-shadow);
+            transition: all 0.4s ease;
+            border: 1px solid rgba(255, 215, 0, 0.1);
+        }
+
+        .committee-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+        }
+
+        .committee-header {
+            background: var(--gold-gradient);
+            padding: 20px;
+            text-align: center;
+        }
+
+        .committee-header h3 {
+            color: var(--black);
+            margin: 0;
+            font-size: 1.5rem;
+            font-family: 'Cinzel', serif;
+        }
+
+        .committee-body {
+            padding: 25px;
+        }
+
+        .committee-body p {
+            margin-bottom: 15px;
+            font-size: 1rem;
+        }
+
+        /* Events Section */
+        .events {
+            background-color: var(--black);
+            position: relative;
+        }
+
+        .events:before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: url('https://www.transparenttextures.com/patterns/diagmonds.png');
+            opacity: 0.05;
+        }
+
+        .events-content {
+            position: relative;
+            z-index: 1;
+        }
+
+        .event-card {
+            background: var(--premium-gradient);
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: var(--card-shadow);
+            margin-top: 50px;
+            display: flex;
+            flex-direction: column;
+            border: 1px solid rgba(255, 215, 0, 0.1);
+        }
+
+        .event-image {
+            height: 300px;
+            overflow: hidden;
+        }
+
+        .event-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 0.5s ease;
+        }
+
+        .event-card:hover .event-image img {
+            transform: scale(1.1);
+        }
+
+        .event-details {
+            padding: 40px;
+        }
+
+        .event-details h3 {
+            color: var(--gold);
+            font-size: 2.2rem;
+            margin-bottom: 15px;
+            font-family: 'Cinzel', serif;
+        }
+
+        .event-meta {
+            display: flex;
+            gap: 30px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .meta-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .meta-item i {
+            color: var(--gold);
+            font-size: 1.2rem;
+        }
+
+        .event-actions {
+            display: flex;
+            gap: 15px;
+            margin-top: 25px;
+        }
+
+        /* Premium Register Section */
+        .register {
+            background-color: var(--dark-gray);
+            position: relative;
+        }
+
+        .register:before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: url('https://www.transparenttextures.com/patterns/diagmonds.png');
+            opacity: 0.05;
+        }
+
+        .register-content {
+            position: relative;
+            z-index: 1;
+        }
+
+        .register-form {
+            max-width: 700px;
+            margin: 40px auto 0;
+            background: var(--premium-gradient);
+            padding: 50px;
+            border-radius: 15px;
+            box-shadow: var(--card-shadow);
+            border: 1px solid rgba(255, 215, 0, 0.1);
+        }
+
+        .form-group {
+            margin-bottom: 25px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 10px;
+            font-weight: 600;
+            color: var(--gold);
+        }
+
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 15px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            background-color: rgba(255, 255, 255, 0.05);
+            color: var(--white);
+            font-size: 16px;
+            transition: all 0.3s ease;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: var(--gold);
+            box-shadow: 0 0 0 2px rgba(255, 215, 0, 0.2);
+        }
+
+        /* Fix for dropdown visibility */
+        .form-group select option {
+            background-color: var(--dark-gray);
+            color: var(--white);
+            padding: 10px;
+        }
+
+        /* Payment Instructions Section */
+        .payment-section {
+            margin-top: 40px;
+            padding-top: 30px;
+            border-top: 1px solid rgba(255, 215, 0, 0.2);
+        }
+
+        .payment-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 25px;
+        }
+
+        .payment-icon {
+            font-size: 28px;
+            color: var(--gold);
+            margin-right: 15px;
+        }
+
+        .payment-amount {
+            background: rgba(255, 215, 0, 0.1);
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 25px;
+            text-align: center;
+            border: 1px solid rgba(255, 215, 0, 0.2);
+        }
+
+        .payment-amount h3 {
+            margin-bottom: 10px;
+            font-size: 1.5rem;
+        }
+
+        .payment-amount .amount {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: var(--gold);
+        }
+
+        .early-bird-tag {
+            background: linear-gradient(45deg, #FFD700, #FF6B00);
+            color: var(--black);
+            padding: 5px 15px;
+            border-radius: 15px;
+            font-weight: 700;
+            font-size: 0.9rem;
+            display: inline-block;
+            margin-top: 10px;
+            animation: pulse 2s infinite;
+        }
+
+        .payment-instructions {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 25px;
+            border-radius: 10px;
+            border: 1px solid rgba(255, 215, 0, 0.2);
+            margin-bottom: 25px;
+        }
+
+        .payment-instructions h4 {
+            color: var(--gold);
+            margin-bottom: 15px;
+            font-family: 'Cinzel', serif;
+        }
+
+        .payment-steps {
+            list-style-type: none;
+            counter-reset: step-counter;
+        }
+
+        .payment-steps li {
+            margin-bottom: 15px;
+            padding-left: 40px;
+            position: relative;
+        }
+
+        .payment-steps li:before {
+            content: counter(step-counter);
+            counter-increment: step-counter;
+            position: absolute;
+            left: 0;
+            top: 0;
+            background: var(--gold);
+            color: var(--black);
+            width: 25px;
+            height: 25px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 0.9rem;
+        }
+
+        .bank-details {
+            background: rgba(255, 215, 0, 0.1);
+            padding: 20px;
+            border-radius: 8px;
+            border: 1px solid var(--gold);
+            margin: 20px 0;
+        }
+
+        .bank-detail-item {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid rgba(255, 215, 0, 0.2);
+        }
+
+        .bank-detail-item:last-child {
+            margin-bottom: 0;
+            padding-bottom: 0;
+            border-bottom: none;
+        }
+
+        .bank-detail-label {
+            font-weight: 600;
+            color: var(--gold);
+        }
+
+        .bank-detail-value {
+            font-family: monospace;
+            background: rgba(0, 0, 0, 0.3);
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 0.9rem;
+        }
+
+        .drive-upload-section {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 30px;
+            border-radius: 10px;
+            border: 2px dashed rgba(255, 215, 0, 0.3);
+            text-align: center;
+            margin: 20px 0;
+        }
+        
+        .drive-icon {
+            font-size: 64px;
+            color: #4285F4;
+            margin-bottom: 20px;
+        }
+        
+        .drive-steps {
+            text-align: left;
+            margin: 25px 0;
+            padding: 0 20px;
+        }
+        
+        .drive-steps li {
+            margin-bottom: 15px;
+            padding-left: 30px;
+            position: relative;
+        }
+        
+        .drive-steps li:before {
+            content: counter(step);
+            counter-increment: step;
+            position: absolute;
+            left: 0;
+            top: 0;
+            background: var(--gold);
+            color: var(--black);
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 0.9rem;
+        }
+
+        .note-box {
+            background: rgba(255, 215, 0, 0.05);
+            border-left: 4px solid var(--gold);
+            padding: 15px;
+            margin: 20px 0;
+            font-size: 0.9rem;
+        }
+
+        /* Loading spinner */
+        .btn-loading {
+            position: relative;
+            color: transparent !important;
+        }
+
+        .btn-loading:after {
+            content: '';
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            top: 50%;
+            left: 50%;
+            margin: -10px 0 0 -10px;
+            border: 2px solid transparent;
+            border-top-color: var(--black);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Premium Contact Section */
+        .contact {
+            background-color: var(--black);
+            position: relative;
+        }
+
+        .contact:before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: url('https://www.transparenttextures.com/patterns/diagmonds.png');
+            opacity: 0.05;
+        }
+
+        .contact-content {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 50px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .contact-info {
+            display: flex;
+            flex-direction: column;
+            gap: 30px;
+        }
+
+        .contact-item {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            padding: 20px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 10px;
+            transition: all 0.3s ease;
+        }
+
+        .contact-item:hover {
+            background: rgba(255, 255, 255, 0.1);
+            transform: translateX(10px);
+        }
+
+        .contact-icon {
+            font-size: 28px;
+            color: var(--gold);
+            width: 60px;
+            height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(255, 215, 0, 0.1);
+            border-radius: 50%;
+        }
+
+        .contact-form {
+            background: var(--premium-gradient);
+            padding: 40px;
+            border-radius: 15px;
+            box-shadow: var(--card-shadow);
+            border: 1px solid rgba(255, 215, 0, 0.1);
+        }
+
+        /* Premium Footer */
+        footer {
+            background: #0a0a0a;
+            padding: 60px 0 30px;
+            text-align: center;
+            position: relative;
+            border-top: 1px solid rgba(255, 215, 0, 0.1);
+        }
+
+        .footer-content {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 30px;
+        }
+
+        .footer-logo {
+            font-size: 32px;
+            font-weight: 900;
+            color: var(--gold);
+            text-decoration: none;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+            letter-spacing: 1px;
+            display: flex;
+            align-items: center;
+            font-family: 'Cinzel', serif;
+        }
+
+        .social-links {
+            display: flex;
+            gap: 25px;
+        }
+
+        .social-links a {
+            color: var(--white);
+            font-size: 22px;
+            transition: all 0.3s ease;
+            width: 50px;
+            height: 50px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 50%;
+        }
+
+        .social-links a:hover {
+            color: var(--gold);
+            background: rgba(255, 215, 0, 0.1);
+            transform: translateY(-5px);
+        }
+
+        .copyright {
+            margin-top: 30px;
+            font-size: 14px;
+            color: rgba(255, 255, 255, 0.6);
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.9);
+            z-index: 2000;
+            align-items: center;
+            justify-content: center;
+            backdrop-filter: blur(5px);
+        }
+
+        .modal.active {
+            display: flex;
+            animation: fadeIn 0.5s ease;
+        }
+
+        .modal-content {
+            background: var(--premium-gradient);
+            padding: 50px;
+            border-radius: 15px;
+            max-width: 500px;
+            width: 90%;
+            text-align: center;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
+            border: 1px solid rgba(255, 215, 0, 0.2);
+            position: relative;
+            animation: scaleIn 0.5s ease;
+        }
+
+        .modal-icon {
+            font-size: 60px;
+            color: var(--gold);
+            margin-bottom: 20px;
+        }
+
+        .modal h3 {
+            font-size: 2rem;
+            margin-bottom: 15px;
+            font-family: 'Cinzel', serif;
+        }
+
+        .modal p {
+            margin-bottom: 25px;
+        }
+
+        .close-modal {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            font-size: 24px;
+            color: var(--white);
+            cursor: pointer;
+            transition: color 0.3s ease;
+        }
+
+        .close-modal:hover {
+            color: var(--gold);
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes scaleIn {
+            from {
+                opacity: 0;
+                transform: scale(0.8);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+
+        /* Responsive Design - MOBILE FIXES */
+        @media (max-width: 992px) {
+            h1 {
+                font-size: 3rem;
+            }
+            
+            h2 {
+                font-size: 2.5rem;
+            }
+            
+            .hero h1 {
+                font-size: 3.5rem;
+            }
+            
+            .about-content {
+                flex-direction: column;
+            }
+            
+            .about-image {
+                transform: none;
+                margin-top: 40px;
+            }
+            
+            .event-card {
+                flex-direction: column;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .nav-links {
+                display: none;
+                position: absolute;
+                top: 80px;
+                left: 0;
+                width: 100%;
+                background: var(--premium-gradient);
+                flex-direction: column;
+                padding: 20px;
+                box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+                text-align: center;
+                z-index: 1001;
+            }
+
+            .nav-links.active {
+                display: flex;
+            }
+
+            .nav-links li {
+                margin: 15px 0;
+            }
+
+            .mobile-menu {
+                display: block;
+            }
+
+            .hero {
+                min-height: 100vh;
+                padding: 100px 0 40px 0;
+            }
+
+            .hero h1 {
+                font-size: 2.5rem;
+                margin-bottom: 20px;
+            }
+            
+            .hero p {
+                font-size: 1.1rem;
+                margin-bottom: 30px;
+            }
+
+            .hero-buttons {
+                flex-direction: column;
+                align-items: center;
+                margin-bottom: 30px;
+            }
+
+            .hero-buttons .btn {
+                width: 80%;
+                max-width: 250px;
+                margin: 8px 0;
+            }
+
+            .mission-cards, .committee-cards {
+                grid-template-columns: 1fr;
+            }
+            
+            .contact-content {
+                grid-template-columns: 1fr;
+            }
+            
+            .event-actions {
+                flex-direction: column;
+            }
+            
+            .bank-detail-item {
+                flex-direction: column;
+                gap: 5px;
+            }
+
+            .matrix-container {
+                padding: 25px 15px;
+            }
+            
+            .matrix-header {
+                flex-direction: column;
+                gap: 10px;
+            }
+            
+            .matrix-header h3 {
+                font-size: 1.5rem;
+            }
+            
+            .matrix-btn {
+                padding: 12px 25px;
+                font-size: 1rem;
+            }
+            
+            .matrix-features {
+                gap: 10px;
+                flex-direction: column;
+            }
+            
+            .matrix-features span {
+                font-size: 0.85rem;
+            }
+
+            .hero-content {
+                padding: 20px 15px;
+            }
+
+            .register-form {
+                padding: 30px 20px;
+                margin: 20px auto 0;
+            }
+            
+            .form-group {
+                margin-bottom: 20px;
+            }
+            
+            .form-group input,
+            .form-group select,
+            .form-group textarea {
+                padding: 12px;
+                font-size: 16px; /* Prevents zoom on iOS */
+            }
+            
+            .payment-amount .amount {
+                font-size: 2rem;
+            }
+            
+            .drive-upload-section {
+                padding: 20px 15px;
+            }
+            
+            .drive-steps {
+                padding: 0 10px;
+            }
+            
+            .bank-details {
+                padding: 15px;
+            }
+            
+            .payment-instructions {
+                padding: 20px 15px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .hero h1 {
+                font-size: 2rem;
+            }
+            
+            .hero p {
+                font-size: 1rem;
+            }
+            
+            .early-bird-badge {
+                font-size: 0.9rem;
+                padding: 6px 15px;
+            }
+            
+            .btn {
+                padding: 12px 25px;
+                font-size: 0.9rem;
+            }
+            
+            .register-form {
+                padding: 25px 15px;
+            }
+            
+            h2 {
+                font-size: 2rem;
+            }
+            
+            .payment-amount .amount {
+                font-size: 1.8rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="container nav-container">
+            <a href="#" class="logo" id="home-link">
+                <img src="https://i.ibb.co/hxPPqKNy/logo.jpg" alt="Rhetorix Logo" class="logo-img" style="width: 60px; height: 60px;">
+                RHETO<span>RIX</span>
+            </a>
+            <div class="mobile-menu">☰</div>
+            <ul class="nav-links">
+                <li><a href="#" id="home-nav">Home</a></li>
+                <li><a href="#" id="about-nav">About Us</a></li>
+                <li><a href="#" id="mission-nav">Our Mission</a></li>
+                <li><a href="#" id="committees-nav">Committees</a></li>
+                <li><a href="#" id="events-nav">Events</a></li>
+                <li><a href="#" id="contact-nav">Contact Us</a></li>
+            </ul>
+        </div>
+    </header>
+
+    <section id="home" class="active">
+        <div class="hero">
+            <div class="container hero-content">
+                <div class="early-bird-badge">
+                    <i class="fas fa-bolt"></i> Early Bird Registration: ₹799 Only!
+                </div>
+                <h1>Welcome to Rhetorix</h1>
+                <p>Experience the thrill of competitive debate in our premier committee-based competition. Join debaters from around the world to engage in structured discourse on pressing global issues.</p>
+                <div class="hero-buttons">
+                    <a href="#" id="events-btn" class="btn">View Events</a>
+                    <a href="#" id="register-hero-btn" class="btn btn-outline">Register for Prastavana Conclave</a>
+                    <a href="#" id="about-btn" class="btn btn-outline">Learn More</a>
+                </div>
+                
+                <!-- Public Eye Matrix - More Prominent -->
+                <div class="matrix-highlight">
+                    <div class="matrix-container">
+                        <div class="matrix-header">
+                            <i class="fas fa-eye"></i>
+                            <h3>Live Public Eye Matrix</h3>
+                            <span class="live-badge">LIVE</span>
+                        </div>
+                        <p>Track real-time participant statistics, committee allocations, and competition progress</p>
+                        <a href="https://docs.google.com/spreadsheets/d/1MvIUKCyp38-_AKp3ztOj_n1YHx9lr0r3NDMEBiZYfjE/edit?usp=sharing" 
+                           target="_blank" 
+                           class="btn matrix-btn">
+                            <i class="fas fa-external-link-alt"></i> View Public Eye Matrix
+                        </a>
+                        <div class="matrix-features">
+                            <span><i class="fas fa-check"></i> Real-time Updates</span>
+                            <span><i class="fas fa-check"></i> Participant Tracking</span>
+                            <span><i class="fas fa-check"></i> Committee Allocations</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="about" class="about">
+        <div class="container">
+            <h2>About Rhetorix</h2>
+            <div class="about-content">
+                <div class="about-text">
+                    <p>Rhetorix was conceived to provide a dedicated platform where individuals can cultivate and showcase their public speaking, debating, and cultural co-curricular skills—areas often overshadowed by the predominant focus on sports in India. The initiative seeks to address this imbalance by fostering environments that encourage articulate expression, critical thinking, and leadership through verbal and cultural engagement.</p>
+
+                    <p>Rhetorix's core mission is to transform the co-curricular landscape by creating structured opportunities for students to explore and develop these essential skills. By organizing debates, eloquence contests, and cultural forums, the platform aspires to nurture a generation capable of constructive dialogue and societal contribution through effective communication.</p>
+
+                    <p>At its foundation, Rhetorix emphasizes inclusivity and accessibility, striving to empower voices from diverse backgrounds and encourage intellectual growth beyond conventional academic or athletic pursuits. This vision is guided by Harsh Bhardwaj, who established the organization in 2025 with a goal to democratize public speaking and cultural participation, ensuring these vital areas receive recognition and encouragement on par with other extracurricular fields.</p>
+
+                    <p>Today, Rhetorix serves as a progressive platform dedicated to the sustained development of expressive and cultural competencies, reinforcing the belief that the power of speech and cultural participation are indispensable tools for individual and collective advancement.</p>
+                </div>
+                <div class="about-image">
+                    <img src="https://s3.envato.com/files/f308c906-41eb-4ab5-b3a2-c63835f8c953/inline_image_preview.jpg" alt="European Parliament Seats">
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="mission" class="mission">
+        <div class="container mission-content">
+            <h2>Our Mission</h2>
+            <p>At Rhetorix, our mission is to foster critical thinking, articulate expression, and informed discourse among the next generation of leaders.</p>
+            
+            <div class="mission-cards">
+                <div class="mission-card">
+                    <div class="mission-icon"><i class="fas fa-brain"></i></div>
+                    <h3>Cultivate Critical Thinking</h3>
+                    <p>We challenge participants to analyze complex issues from multiple perspectives, developing their ability to think critically and make reasoned arguments.</p>
+                </div>
+                <div class="mission-card">
+                    <div class="mission-icon"><i class="fas fa-microphone-alt"></i></div>
+                    <h3>Develop Oratory Skills</h3>
+                    <p>We provide a platform for debaters to hone their public speaking abilities, learning to articulate their thoughts clearly and persuasively.</p>
+                </div>
+                <div class="mission-card">
+                    <div class="mission-icon"><i class="fas fa-handshake"></i></div>
+                    <h3>Foster Diplomacy</h3>
+                    <p>Through committee-based debate, we teach the art of diplomacy—balancing firm convictions with respectful discourse and compromise.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+         <section id="committees" class="committees">
+        <div class="container committees-content">
+            <h2>Our Committees</h2>
+            <p>Explore the diverse committees that form the foundation of Rhetorix debate competitions.</p>
+            
+            <div class="committee-cards">
+                <div class="committee-card">
+                    <div class="committee-header">
+                        <h3>Lok Sabha</h3>
+                    </div>
+                    <div class="committee-body">
+                        <p>Agenda: Post the Bangladesh crisis, the world urgently requires a Hindu-majority country</p>
+                    </div>
+                </div>
+                
+                <div class="committee-card">
+                    <div class="committee-header">
+                        <h3>UN Security Council (UNSC)</h3>
+                    </div>
+                    <div class="committee-body">
+                        <p>Agenda: Reforming the veto power in the United Nations Security Council with a focus on granting veto power to emerging global powers</p>
+                    </div>
+                </div>
+                
+                <div class="committee-card">
+                    <div class="committee-header">
+                        <h3>UN Commission on Status of Women (UNCSW)</h3>
+                    </div>
+                    <div class="committee-body">
+                        <p>Agenda: Addressing Gender-based violence in armed conflicts.</p>
+                    </div>
+                </div>
+                
+                <div class="committee-card">
+                    <div class="committee-header">
+                        <h3>International Press (IP)</h3>
+                    </div>
+                    <div class="committee-body">
+                        <p>Act as journalists covering the proceedings of other committees. Write articles, conduct interviews, and report on debate outcomes.</p>
+                        <p>This committee develops media literacy, investigative reporting skills, and the ability to present complex issues to the public.</p>
+                    </div>
+                </div>
+                
+                <div class="committee-card">
+                    <div class="committee-header">
+                        <h3>World Health Organization (WHO)</h3>
+                    </div>
+                    <div class="committee-body">
+                        <p>Agenda: Addressing the public health impact of excessive social media usage, proposing global guidelines and interventions</p>
+                    </div>
+                </div>
+                <div class="committee-card">
+                    <div class="committee-header">
+                        <h3>Superhero Alliance: Marvel vs DC</h3>
+                    </div>
+                    <div class="committee-body">
+                        <p>Agenda: Stopping a Multiverse Destroyer: Marvel & DC Must Unite</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="events" class="events">
+        <div class="container events-content">
+            <h2>Our Events</h2>
+            <p>Discover our upcoming debate competitions and special events.</p>
+            
+            <div class="event-card">
+                <div class="event-image">
+                    <img src="https://www.joonsquare.com/usermanage/image/business/prelude-public-school-agra-4037/prelude-public-school-agra-pre3.jpg" alt="Prastavana Conclave">
+                </div>
+                <div class="event-details">
+                    <h3>Prastavana Conclave</h3>
+                    <p>The Prastavana Conclave is our flagship event, bringing together the most skilled debaters to engage in intense committee-based competitions. This three-day event features specialized committees, expert adjudicators, and networking opportunities with debate coaches and professionals.</p>
+                    
+                    <div class="event-meta">
+                        <div class="meta-item">
+                            <i class="fas fa-calendar-alt"></i>
+                            <span>December 20-21, 2025</span>
+                        </div>
+                        <div class="meta-item">
+                            <i class="fas fa-map-marker-alt"></i>
+                            <span>Prelude Public School, Agra</span>
+                        </div>
+                        <div class="meta-item">
+                            <i class="fas fa-users"></i>
+                            <span>200+ Debaters Expected</span>
+                        </div>
+                    </div>
+                    
+                    <p>Featured committees include Lok Sabha, UN Security Council, UN Commission on Status of Women, International Press, and World Health Organization.</p>
+                    
+                    <div class="event-actions">
+                        <a href="#" id="register-btn" class="btn">Register Now</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Register Page -->
+    <section id="register" class="register">
+        <div class="container register-content">
+            <h2>Register for Rhetorix</h2>
+            <p>Join us for an unforgettable debate experience. Fill out the form below to register for our upcoming competition.</p>
+            
+            <!-- Important Notice about Public Eye Matrix -->
+            <div class="note-box" style="background: rgba(66, 133, 244, 0.1); border-left: 4px solid #4285F4; margin-bottom: 30px;">
+                <h4 style="color: #4285F4; margin-bottom: 10px;">
+                    <i class="fas fa-eye"></i> Important: Check Available Portfolios First!
+                </h4>
+                <p>Before selecting your preferred committees, please check the <strong>Public Eye Matrix</strong> to see available portfolios and make informed choices.</p>
+                <a href="https://docs.google.com/spreadsheets/d/1MvIUKCyp38-_AKp3ztOj_n1YHx9lr0r3NDMEBiZYfjE/edit?usp=sharing" 
+                target="_blank" 
+                class="btn" 
+                style="background: #4285F4; border: none; margin-top: 10px;">
+                    <i class="fas fa-external-link-alt"></i> View Public Eye Matrix
+                </a>
+            </div>
+            
+            <div class="register-form">
+                <form id="registration-form" novalidate>
+                    <div class="form-group">
+                        <label for="full-name">Full Name</label>
+                        <input type="text" id="full-name" name="full-name" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="email">Email Address</label>
+                        <input type="email" id="email" name="email" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="phone">Phone Number</label>
+                        <input type="tel" id="phone" name="phone" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="institution">School/Institution</label>
+                        <input type="text" id="institution" name="institution" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="committee1">Preferred Committee 1</label>
+                        <select id="committee1" name="committee1" required>
+                            <option value="">Select your first committee preference</option>
+                            <option value="lok-sabha">Lok Sabha</option>
+                            <option value="unsc">UN Security Council (UNSC)</option>
+                            <option value="uncsw">UN Commission on Status of Women (UNCSW)</option>
+                            <option value="ip">International Press (IP)</option>
+                            <option value="who">World Health Organization (WHO)</option>
+                            <option value="superhero">Superhero Alliance (Classes 5–8 only)</option>
+                        </select>
+                        <small style="color: var(--light-gray); font-size: 0.9rem; margin-top: 5px; display: block;">
+                            Your primary committee preference
+                        </small>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="committee2">Preferred Committee 2</label>
+                        <select id="committee2" name="committee2" required>
+                            <option value="">Select your second committee preference</option>
+                            <option value="lok-sabha">Lok Sabha</option>
+                            <option value="unsc">UN Security Council (UNSC)</option>
+                            <option value="uncsw">UN Commission on Status of Women (UNCSW)</option>
+                            <option value="ip">International Press (IP)</option>
+                            <option value="who">World Health Organization (WHO)</option>
+                            <option value="superhero">Superhero Alliance (Classes 5–8 only)</option>
+                        </select>
+                        <small style="color: var(--light-gray); font-size: 0.9rem; margin-top: 5px; display: block;">
+                            Your secondary committee preference (different from first)
+                        </small>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="portfolio1">Preferred Portfolio</label>
+                        <input type="text" id="portfolio1" name="portfolio1" placeholder="e.g., India (WHO), Russia (UNSC), Black Panther (Superhero Alliance)">
+                        <small style="color: var(--light-gray); font-size: 0.9rem; margin-top: 5px; display: block;">
+                            Specific portfolio you're interested in (check Public Eye Matrix for available options)
+                        </small>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="portfolio2">Preferred Portfolio 2</label>
+                        <input type="text" id="portfolio2" name="portfolio2" placeholder="e.g., Home Minister (Lok Sabha), China (UNSC), Wonder Woman (Superhero Alliance)">
+                        <small style="color: var(--light-gray); font-size: 0.9rem; margin-top: 5px; display: block;">
+                            Secondary portfolio preference
+                        </small>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="experience">Debate Experience Level</label>
+                        <select id="experience" name="experience" required>
+                            <option value="">Select experience level</option>
+                            <option value="beginner">Beginner (0-1 competitions)</option>
+                            <option value="intermediate">Intermediate (2-4 competitions)</option>
+                            <option value="advanced">Advanced (5+ competitions)</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="reference">Reference (Optional)</label>
+                        <input type="text" id="reference" name="reference" placeholder="Name of person who referred you (if applicable)">
+                        <small style="color: var(--light-gray); font-size: 0.9rem; margin-top: 5px; display: block;">
+                            If someone referred you to Rhetorix, please mention their name here
+                        </small>
+                    </div>
+
+                    <div class="payment-section">
+                        <div class="payment-header">
+                            <div class="payment-icon">
+                                <i class="fas fa-credit-card"></i>
+                            </div>
+                            <h3>Payment Information</h3>
+                        </div>
+                        
+                        <div class="payment-amount">
+                            <h3>Registration Fee</h3>
+                            <div class="amount">₹ 799</div>
+                            <div class="early-bird-tag">
+                                <i class="fas fa-bolt"></i> Early Bird Offer
+                            </div>
+                            <p>Includes access to all competition events and materials</p>
+                        </div>
+                        
+                        <div class="payment-instructions">
+                            <h4>Complete Your Registration in 3 Steps:</h4>
+                            <ol class="payment-steps">
+                                <li>Fill out and submit this registration form</li>
+                                <li>Make payment via UPI/Bank Transfer</li>
+                                <li>Upload payment screenshot using Google Drive form below</li>
+                            </ol>
+                        </div>
+                        <!-- 
+                             Bank acc details have been censored
+                             Razorpay API can be used to ease the payment process
+                           -->
+                        <div class="bank-details">
+                            <h4 style="color: var(--gold); margin-bottom: 15px; text-align: center;">
+                                <i class="fas fa-university"></i> Payment Details
+                            </h4>
+                            <div class="bank-detail-item">
+                                <span class="bank-detail-label">UPI ID:</span>
+                                <span class="bank-detail-value">XXXX</span>
+                            </div>
+                            <div class="bank-detail-item">
+                                <span class="bank-detail-label">Account Name:</span>
+                                <span class="bank-detail-value">XXXX</span>
+                            </div>
+                            <div class="bank-detail-item">
+                                <span class="bank-detail-label">Account Number:</span>
+                                <span class="bank-detail-value">XXXX</span>
+                            </div>
+                            <div class="bank-detail-item">
+                                <span class="bank-detail-label">IFSC Code:</span>
+                                <span class="bank-detail-value">XXXX</span>
+                            </div>
+                            <div class="bank-detail-item">
+                                <span class="bank-detail-label">Bank:</span>
+                                <span class="bank-detail-value">XXXX</span>
+                            </div>
+                        </div>
+                        
+                        <div class="drive-upload-section">
+                            <div class="drive-icon">
+                                <i class="fab fa-google-drive"></i>
+                            </div>
+                            <h3 style="color: var(--gold); margin-bottom: 15px;">Upload Payment Screenshot</h3>
+                            <p style="margin-bottom: 20px;">Use the Google Drive form below to securely upload your payment confirmation screenshot</p>
+                            
+                            <div class="drive-steps" style="counter-reset: step;">
+                                <li>Take a screenshot of your payment confirmation</li>
+                                <li>Click the Google Drive button below</li>
+                                <li>Fill in your details and upload the screenshot</li>
+                                <li>That's it! We'll verify and confirm your registration</li>
+                            </div>
+                            
+                            <a href="https://docs.google.com/forms/d/e/1FAIpQLSdBAWJu6cU1n_DvtUmxo9VlOyZD9OqUVjdpX-Hx_1hyAlN_aQ/viewform?usp=header" 
+                            target="_blank" 
+                            class="btn" 
+                            style="background: #4285F4; border: none; padding: 15px 40px; font-size: 1.1rem;">
+                                <i class="fab fa-google-drive"></i> Upload to Google Drive
+                            </a>
+                            
+                            <p style="margin-top: 15px; font-size: 0.9rem; color: var(--light-gray);">
+                                <i class="fas fa-shield-alt"></i> Secure & Private - Files go directly to our Google Drive
+                            </p>
+                        </div>
+                        
+                        <div class="note-box">
+                            <p><strong>Important:</strong> Make sure your payment screenshot clearly shows:</p>
+                            <ul style="margin-left: 20px; margin-top: 5px;">
+                                <li>Transaction ID/Reference Number</li>
+                                <li>Amount (₹799)</li>
+                                <li>Date and Time</li>
+                                <li>Your name or UPI ID</li>
+                            </ul>
+                        </div>
+                    </div>
+                    
+                    <button type="submit" class="btn" id="submit-btn">
+                        <i class="fas fa-paper-plane"></i> Submit Registration
+                    </button>
+                </form>
+            </div>
+        </div>
+    </section>
+
+    <!-- Contact Us Page -->
+    <section id="contact" class="contact">
+        <div class="container">
+            <h2>Contact Us</h2>
+            <p>Have questions about Rhetorix? Reach out to our team - we're here to help!</p>
+            
+            <div class="contact-content">
+                <div class="contact-info">
+                    <div class="contact-item">
+                        <div class="contact-icon"><i class="fas fa-map-marker-alt"></i></div>
+                        <div>
+                            <h3>Address</h3>
+                            <p>Prelude Public School<br>Agra, Uttar Pradesh</p>
+                        </div>
+                    </div>
+                    
+                    <div class="contact-item">
+                        <div class="contact-icon"><i class="fas fa-phone"></i></div>
+                        <div>
+                            <h3>Phone</h3>
+                            <p>+91 81714 47330</p>
+                        </div>
+                    </div>
+                    
+                    <div class="contact-item">
+                        <div class="contact-icon"><i class="fas fa-envelope"></i></div>
+                        <div>
+                            <h3>Email</h3>
+                            <p>rrhetorix@gmail.com</p>
+                        </div>
+                    </div>
+                    
+                    <div class="contact-item">
+                        <div class="contact-icon"><i class="fab fa-whatsapp"></i></div>
+                        <div>
+                            <h3>WhatsApp</h3>
+                            <p>+91 81714 47330</p>
+                            <p><em>For payment confirmation and queries</em></p>
+                        </div>
+                    </div>
+                </div>    
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer>
+        <div class="container footer-content">
+            <a href="#" class="footer-logo" id="footer-home-link">
+                <img src="https://i.ibb.co/hxPPqKNy/logo.jpg" alt="Rhetorix Logo" class="logo-img">
+                RHETO<span>RIX</span>
+            </a>
+            <p>Empowering the next generation through the art of debate and discourse.</p>
+            
+            <div class="social-links">
+                <a href="https://www.instagram.com/rhetori.x?utm_source=ig_web_button_share_sheet&igsh=aWFtbjd0MmM2em9l"><i class="fab fa-instagram"></i></a>
+                <a href="https://www.facebook.com/rhetorix.x"><i class="fab fa-facebook-f"></i></a>
+            </div>
+            
+            <p class="copyright">&copy; 2025 Rhetorix Debate Competition. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <!-- Success Modal - Updated -->
+    <div class="modal" id="success-modal">
+        <div class="modal-content">
+            <span class="close-modal">&times;</span>
+            <div class="modal-icon"><i class="fas fa-check-circle"></i></div>
+            <h3>Registration Submitted Successfully!</h3>
+            <p>Thank you for registering for Rhetorix! Your registration form has been received successfully.</p>
+            
+            <div style="background: rgba(255, 215, 0, 0.1); padding: 20px; border-radius: 10px; margin: 20px 0; border-left: 4px solid var(--gold);">
+                <h4 style="color: var(--gold); margin-bottom: 15px;">Important Notice</h4>
+                <p>Please complete your registration by uploading the payment screenshot using the Google Drive form in the registration page. Your spot will be confirmed only after payment verification.</p>
+            </div>
+            
+            <div style="display: flex; gap: 15px; justify-content: center; flex-wrap: wrap; margin: 25px 0;">
+                <button class="btn" id="modal-close-btn">
+                    <i class="fas fa-home"></i> Return to Home
+                </button>
+                <a href="#" class="btn btn-outline" id="modal-register-again">
+                    <i class="fas fa-plus"></i> Register Another
+                </a>
+            </div>
+            
+            <p style="font-size: 0.9rem; color: var(--light-gray);">
+                <i class="fas fa-info-circle"></i> You will receive a confirmation email within 24 hours
+            </p>
+        </div>
+    </div>
+
+    
+    <script>
+        
+        const firebaseConfig = {
+            apiKey: "XXXX",
+            authDomain: "XXXX",
+            projectId: "XXXX",
+            storageBucket: "XXXX",
+            messagingSenderId: "XXXX",
+            appId: "XXXX",
+            measurementId: "XXXX"
+        };
+
+       /* Note this is only for debugging, to make sure registrations go through*/
+        let db;
+        try {
+            const app = firebase.initializeApp(firebaseConfig);
+            db = firebase.firestore();
+            console.log("✅ Firebase initialized successfully");
+        } catch (error) {
+            console.error("❌ Firebase initialization error:", error);
+        }
+
+        function showPage(pageId) {
+            console.log("Navigating to:", pageId);
+            document.querySelectorAll('section').forEach(section => {
+                section.classList.remove('active');
+            });
+            
+            const targetSection = document.getElementById(pageId);
+            if (targetSection) {
+                targetSection.classList.add('active');
+                
+                
+                document.querySelectorAll('.nav-links a').forEach(link => {
+                    link.classList.remove('active');
+                });
+                
+                const activeNav = document.getElementById(pageId + '-nav');
+                if (activeNav) {
+                    activeNav.classList.add('active');
+                }
+                
+                const navMenu = document.querySelector('.nav-links');
+                if (navMenu) navMenu.classList.remove('active');
+                window.scrollTo(0, 0);
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('DOM fully loaded and parsed');
+            showPage('home');
+            setupEventListeners();
+        });
+
+        function setupEventListeners() {
+            const homeLink = document.getElementById('home-link');
+            const homeNav = document.getElementById('home-nav');
+            const aboutNav = document.getElementById('about-nav');
+            const missionNav = document.getElementById('mission-nav');
+            const committeesNav = document.getElementById('committees-nav');
+            const eventsNav = document.getElementById('events-nav');
+            const contactNav = document.getElementById('contact-nav');
+            const eventsBtn = document.getElementById('events-btn');
+            const aboutBtn = document.getElementById('about-btn');
+            const registerBtn = document.getElementById('register-btn');
+            const registerHeroBtn = document.getElementById('register-hero-btn');
+            const footerHomeLink = document.getElementById('footer-home-link'); 
+            const mobileMenu = document.querySelector('.mobile-menu');
+            const navMenu = document.querySelector('.nav-links');
+            const registrationForm = document.getElementById('registration-form');
+            const successModal = document.getElementById('success-modal');
+            const closeModal = document.querySelector('.close-modal');
+            const modalCloseBtn = document.getElementById('modal-close-btn');
+            const modalRegisterAgain = document.getElementById('modal-register-again');
+            
+            if (mobileMenu) {
+                mobileMenu.addEventListener('click', function() {
+                    if (navMenu) navMenu.classList.toggle('active');
+                });
+            }
+
+            document.querySelectorAll('.nav-links a').forEach(link => {
+                link.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    const pageId = this.id.replace('-nav', '');
+                    showPage(pageId);
+                });
+            });
+            
+    
+            if (homeLink) {
+                homeLink.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    showPage('home');
+                });
+            }
+            
+            if (homeNav) {
+                homeNav.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    showPage('home');
+                });
+            }
+            
+            if (aboutNav) {
+                aboutNav.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    showPage('about');
+                });
+            }
+            
+            if (missionNav) {
+                missionNav.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    showPage('mission');
+                });
+            }
+            
+            if (committeesNav) {
+                committeesNav.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    showPage('committees');
+                });
+            }
+            
+            if (eventsNav) {
+                eventsNav.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    showPage('events');
+                });
+            }
+            
+            if (contactNav) {
+                contactNav.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    showPage('contact');
+                });
+            }
+            
+            if (eventsBtn) {
+                eventsBtn.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    showPage('events');
+                });
+            }
+            
+            if (aboutBtn) {
+                aboutBtn.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    showPage('about');
+                });
+            }
+            
+            if (registerBtn) {
+                registerBtn.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    showPage('register');
+                });
+            }
+
+            if (registerHeroBtn) {
+                registerHeroBtn.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    showPage('register');
+                });
+            }
+            
+            if (footerHomeLink) {
+                footerHomeLink.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    showPage('home');
+                });
+            }
+
+            // Form submission
+            if (registrationForm) {
+                registrationForm.addEventListener('submit', async (e) => {
+                    e.preventDefault();
+                    
+                    // Validate form
+                    if (!validateRegistrationForm()) {
+                        return;
+                    }
+                    
+                    console.log("📝 Form submission started...");
+                    
+                    const submitBtn = document.getElementById('submit-btn');
+                    const originalBtnText = submitBtn.innerHTML;
+                    submitBtn.disabled = true;
+                    submitBtn.classList.add('btn-loading');
+                    
+                    try {
+                        const registrationData = {
+                            name: document.getElementById('full-name').value,
+                            email: document.getElementById('email').value,
+                            phone: document.getElementById('phone').value,
+                            institution: document.getElementById('institution').value,
+                            committee1: document.getElementById('committee1').value,
+                            committee2: document.getElementById('committee2').value,
+                            portfolio1: document.getElementById('portfolio1').value,
+                            portfolio2: document.getElementById('portfolio2').value,
+                            experience: document.getElementById('experience').value,
+                            reference: document.getElementById('reference').value,
+                            timestamp: new Date().toISOString(),
+                            status: 'pending_payment_upload'
+                        };
+
+                        console.log("📊 Registration data:", registrationData);
+
+                        // Save to Firestore
+                        await db.collection('registrations').add(registrationData);
+                        console.log("✅ Registration saved to Firebase");
+                        
+                        // Show success modal
+                        if (successModal) successModal.classList.add('active');
+                        registrationForm.reset();
+                        
+                    } catch (error) {
+                        console.error("❌ Error:", error);
+                        
+                        // More specific error messages
+                        if (error.code === 'permission-denied') {
+                            alert('Database permissions issue. Please contact the administrator.');
+                        } else if (error.code === 'unavailable') {
+                            alert('Network error. Please check your connection and try again.');
+                        } else {
+                            alert('Registration failed: ' + error.message);
+                        }
+                    } finally {
+                        submitBtn.disabled = false;
+                        submitBtn.classList.remove('btn-loading');
+                        submitBtn.innerHTML = originalBtnText;
+                    }
+                });
+            }
+            // Close success modal and go to home
+            if (modalCloseBtn) {
+                modalCloseBtn.addEventListener('click', () => {
+                    if (successModal) successModal.classList.remove('active');
+                    showPage('home');
+                });
+            }
+
+            // Register another person
+            if (modalRegisterAgain) {
+                modalRegisterAgain.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    if (successModal) successModal.classList.remove('active');
+                    showPage('register');
+                });
+            }
+
+            // Close modal with X button
+            if (closeModal) {
+                closeModal.addEventListener('click', () => {
+                    if (successModal) successModal.classList.remove('active');
+                });
+            }
+
+            // Close modal when clicking outside
+            window.addEventListener('click', function(e) {
+                if (e.target === successModal) {
+                    successModal.classList.remove('active');
+                }
+            });
+        }
+        
+        // Form validation function
+        function validateRegistrationForm() {
+            const requiredFields = [
+                'full-name', 'email', 'phone', 'institution', 
+                'committee1', 'committee2', 'experience'
+            ];
+            
+            // Check basic required fields
+            for (let fieldId of requiredFields) {
+                const field = document.getElementById(fieldId);
+                if (!field || !field.value.trim()) {
+                    if (field) field.focus();
+                    showFieldError(fieldId, 'This field is required');
+                    return false;
+                }
+            }
+            
+            // Email validation
+            const email = document.getElementById('email').value;
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            if (!emailRegex.test(email)) {
+                showFieldError('email', 'Please enter a valid email address');
+                return false;
+            }
+            
+            // Phone validation
+            const phone = document.getElementById('phone').value;
+            const phoneRegex = /^[6-9]\d{9}$/;
+            if (!phoneRegex.test(phone)) {
+                showFieldError('phone', 'Please enter a valid 10-digit phone number');
+                return false;
+            }
+            
+            // Check if committee1 and committee2 are different
+            const committee1 = document.getElementById('committee1').value;
+            const committee2 = document.getElementById('committee2').value;
+            if (committee1 === committee2) {
+                showFieldError('committee2', 'Please select different committee preferences');
+                return false;
+            }
+            
+            return true;
+        }
+        
+        // Helper function to show errors
+        function showFieldError(fieldId, message) {
+            const field = document.getElementById(fieldId);
+            if (!field) return;
+            
+            // Remove existing error
+            const existingError = field.parentNode.querySelector('.field-error');
+            if (existingError) {
+                existingError.remove();
+            }
+            
+            // Add error message
+            const errorElement = document.createElement('div');
+            errorElement.className = 'field-error';
+            errorElement.style.color = 'var(--light-red)';
+            errorElement.style.fontSize = '0.9rem';
+            errorElement.style.marginTop = '5px';
+            errorElement.textContent = message;
+            
+            field.parentNode.appendChild(errorElement);
+            
+            field.style.borderColor = 'var(--light-red)';
+            
+            field.addEventListener('input', function() {
+                field.style.borderColor = '';
+                errorElement.remove();
+            }, { once: true });
+        }
+    </script>
+</body>
+</html>
