@@ -1,6 +1,7 @@
 # Rhetorix Official Website  
 The official platform for **Rhetorix**, a youth-led initiative founded in 2025 to uplift India’s overlooked expressive disciplines, including public speaking, debates, group discussions, elocution, and cultural articulation.  
 This website powers **Prastavana Conclave**, the premier committee-based debating competition hosted at Prelude Public School, Agra.
+Site: https://rhetorix-ddda0.web.app/#
 
 ---
 
