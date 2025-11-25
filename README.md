@@ -29,6 +29,6 @@ This website powers **Prastavana Conclave**, the premier committee-based debatin
 - **Firebase**
   - Firestore Database  
   - Firebase Hosting  
-- Google Drive API (indirectly via form for payment screenshot uploads)  
+- Google Drive API (indirectly via form for payment screenshot uploads)
 
-## 📁 Folder Structure
+  ---
