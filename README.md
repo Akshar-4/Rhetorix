@@ -32,3 +32,50 @@ This website powers **Prastavana Conclave**, the premier committee-based debatin
 - Google Drive API (indirectly via form for payment screenshot uploads)
 
   ---
+## 📝 How Data Flows
+1. User fills and submits the registration form  
+2. Client-side validation checks required fields  
+3. Data is stored securely in **Firebase Firestore**  
+4. Payment proof is uploaded via a Google Form → Google Drive  
+5. Admin team verifies entries and confirms registrations manually  
+
+---
+
+## 🎨 UI / UX Design Notes
+- Premium **Red × Gold × Black** theme  
+- Responsive layout for mobile, tablet, and desktop  
+- Smooth single-page navigation using JavaScript section switching  
+- Custom modal component for success confirmation  
+- Hero banners, committee cards, gradient backgrounds  
+- Clean typography using Cinzel + Montserrat  
+
+---
+
+## 📌 Roadmap
+- Implement **email/OTP verification**  
+- Build **Admin Dashboard** for allotments & tracking  
+- Add **automated portfolio allotment logic**  
+- Move backend logic to **Firebase Cloud Functions**  
+- Add analytics + performance tracking  
+- Add **dark/light mode**  
+- Generate automatic confirmation receipts  
+
+---
+
+## 👤 Author
+**Akshar Mishra**  
+*Founding Technical Lead — Rhetorix*  
+- Full-stack development (frontend + backend)  
+- Firebase integration and workflow design  
+- UI/UX design and performance optimization  
+
+---
+
+## 🤝 Credits
+- **Founder:** Harsh Bhardwaj  
+- **Design & Media Team:** Rhetorix Media Wing  
+- **Host Institution:** Prelude Public School, Agra  
+
+---
+
+Feel free to fork, improve, or contribute — credit appreciated.
